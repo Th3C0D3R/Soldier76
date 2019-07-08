@@ -10,7 +10,7 @@ userInfo = {
 		-- 开镜
 		ADS = 100,
 		-- 腰射
-		Aim = 0.95,
+		Aim = 0.55,
 		-- 二倍
 		scopeX2 = 1.3,
 		-- 三倍
@@ -24,17 +24,14 @@ userInfo = {
 	-- 是否腰射压枪 (腰射开启自动压枪 1 - 开启， 0 - 关闭)
 	aimAutoControl = 1,
 
-	-- 是否自动连发 (单发模式变全自动 1 - 开启， 0 - 关闭，需要设置好 fireKeySetting 参数)
-	autoContinuousFiring = 0, -- 默认为 0，不推荐使用
-
-	-- 开火按键设置 (需设置为键盘上的按键) 默认 tilde -> ~ (注意，游戏内需要设置相同键位作为开火键)
-	fireKeySetting = "tilde",
-
-	-- 瞄准设置 (default - 使用游戏默认设置 | recommend - 使用脚本推荐设置 | custom - 自定义设置)
-	aimingSettings = "recommend",
+	-- 是否自动连发 (单发模式变全自动 1 - 开启， 0 - 关闭)
+	autoContinuousFiring = 1, -- 默认为 1
 
 	-- 启动控制 (capslock - 使用大写锁定键控制 | numlock - 小键盘锁定键控制 | G_bind - 使用指令控制)
 	startControl = "capslock",
+
+	-- 瞄准设置 (default - 使用游戏默认设置 | recommend - 使用脚本推荐设置 | custom - 自定义设置)
+	aimingSettings = "recommend",
 
 	-- 当 aimingSettings = "custom" ，需要在此处设置自定义判断条件，通常配合 IsMouseButtonPressed 或 IsModifierPressed 使用，使用方法请查阅 G-series Lua API 参考文档.docx
 	customAimingSettings = {
@@ -65,6 +62,7 @@ userInfo = {
 			{ "SCAR-L", 1 }, -- 补偿 + 基础镜 + 直角 + 扩容
 			{ "QBZ", 1 }, -- 补偿 + 基础镜 + 直角 + 扩容
 			{ "G36C", 1 }, -- 补偿 + 基础镜 + 直角 + 扩容
+			{ "M16A4", 1 }, -- 补偿 + 基础镜 + 扩容 + 扩容
 		},
 		["7.62"] = {
 			{ "AKM", 1 }, -- 补偿 + 基础镜 + 扩容
@@ -149,6 +147,34 @@ userInfo = {
 	},
 }
 
+--[[
+
+	stop
+
+	stop
+
+	stop
+
+	停一下，别往下看了
+
+	如果你是普通玩家，那么设置到这里就可以了，再往下不用看了，改不好了可能导致脚本运行报错。
+
+	如果你对脚本有一定的了解了，可以继续往下看，当然也可以自己动手修改。
+
+	第一次使用不知道怎么设置？请看文档： https://github.com/kiccer/Soldier76#%E5%88%9D%E6%AC%A1%E4%BD%BF%E7%94%A8
+
+	看了文档依然解决不了的可以加群问群里大佬： 768483124
+
+	如果你的宏可以使用了，也别兴高采烈的立马关掉网页就去玩游戏了，花点时间创个github帐号，然后页面最右上角的star帮忙点一下，谢谢
+
+	得到支持和肯定，我才更有更新的动力
+
+	还有很重要的一点，这个脚本你只能自己使用，或者修改后分享给别人使用，或者直接分享脚本的github地址，但不要利用这个脚本去赚钱
+
+	我想你知道我说的是什么意思，当然这个只是防君子不防小人
+
+]]
+
 ----------------------------- [[ 以下是脚本核心代码，非专业人士请勿改动 ]] -----------------------------
 pubg = {
 	gun = {
@@ -168,7 +194,7 @@ pubg = {
 	counter = 0, -- 计数器
 	xCounter = 0, -- x计数器
 	sleep = 1, -- 频率设置 (这里不能设置成0，调试会出BUG)
-	sleepRandom = { 0, 1 }, -- 防检测随机延迟
+	sleepRandom = { 5, 10 }, -- 防检测随机延迟
 	startTime = 0, -- 鼠标按下时记录脚本运行时间戳
 	prevTime = 0, -- 记录上一轮脚本运行时间戳
 	scopeX1 = 1, -- 基瞄压枪倍率 (裸镜、红点、全息、侧瞄)
@@ -180,6 +206,9 @@ pubg = {
 	generalSensitivityRatio = userInfo.sensitivity.ADS / 100, -- 按比例调整灵敏度
 	isEffective = "2020-01-01 00:00:00", -- 有效期
 	isStart = false, -- 是否是启动状态
+	G1 = false, -- G1键状态
+	currentTime = 0, -- 此刻
+	bulletIndex = 0, -- 第几颗子弹
 }
 
 pubg.xLengthForDebug = pubg.generalSensitivityRatio * 60 -- 调试模式下的水平移动单元长度
@@ -213,6 +242,25 @@ function pubg.isAimingState (mode)
 	}
 
 	return switch[mode]()
+end
+
+pubg["M16A4"] = function ()
+
+	return pubg.execOptions({
+		interval = 108,
+		ballistic = {
+			{1, 0},
+			{2, 140},
+			{3, 47},
+			{4, 67},
+			{5, 87},
+			{10, 100},
+			{20, 118},
+			{35, 120},
+			{40, 127},
+		}
+	})
+
 end
 
 pubg["SCAR-L"] = function ()
@@ -290,7 +338,7 @@ end
 pubg["Vector"] = function ()
 
 	return pubg.execOptions({
-		interval = 60,
+		interval = 61,
 		ballistic = {
 			{1, 0},
 			{5, 52},
@@ -325,8 +373,8 @@ pubg["UMP45"] = function ()
 		interval = 100,
 		ballistic = {
 			{1, 0},
-			{5, 69},
-			{10, 94},
+			{5, 70},
+			{10, 95},
 			{15, 96},
 			{35, 103},
 		}
@@ -337,12 +385,12 @@ end
 pubg["AKM"] = function ()
 
 	return pubg.execOptions({
-		interval = 104,
+		interval = 107,
 		ballistic = {
 			{1, 0},
 			{2, 160},
-			{5, 92},
-			{10, 90},
+			{5, 98},
+			{10, 100},
 			{40, 129},
 		}
 	})
@@ -352,7 +400,7 @@ end
 pubg["M416"] = function ()
 
 	return pubg.execOptions({
-		interval = 92,
+		interval = 93,
 		ballistic = {
 			{1, 0},
 			{2, 132},
@@ -537,57 +585,70 @@ end
 function pubg.auto (options)
 
 	-- Accurate aiming press gun
-	for i = 1, 50000 do
-		local now = GetRunningTime()
-		local time = math.ceil(((now - pubg.startTime == 0 and {1} or {now - pubg.startTime})[1]) / options.interval) + 1
-		if
-			IsMouseButtonPressed(1)
-			and time <= options.amount
-			-- and pubg.counter < options.duration
-		then
+	-- for i = 1, 50000 do
+		pubg.currentTime = GetRunningTime()
+		pubg.bulletIndex = math.ceil(((pubg.currentTime - pubg.startTime == 0 and {1} or {pubg.currentTime - pubg.startTime})[1]) / options.interval) + 1
+
+		if pubg.bulletIndex > options.amount then return false end
+		-- if
+		-- 	IsMouseButtonPressed(1)
+		-- 	and pubg.bulletIndex <= options.amount
+		-- 	-- and pubg.counter < options.duration
+		-- 	and pubg.ok
+		-- then
 			-- Developer Debugging Mode
-			-- local x = (IsKeyLockOn("scrolllock") and { 1 } or { options.x[time] })[1]
-			local d = (IsKeyLockOn("scrolllock") and { (time - 1) * pubg.xLengthForDebug } or { 0 })[1]
-			local x = math.ceil((now - pubg.startTime) / (options.interval * (time - 1)) * d) - pubg.xCounter
-			local y = math.ceil((now - pubg.startTime) / (options.interval * (time - 1)) * options.ballistic[time]) - pubg.counter
+			-- local x = (IsKeyLockOn("scrolllock") and { 1 } or { options.x[pubg.bulletIndex] })[1]
+			local d = (IsKeyLockOn("scrolllock") and { (pubg.bulletIndex - 1) * pubg.xLengthForDebug } or { 0 })[1]
+			local x = math.ceil((pubg.currentTime - pubg.startTime) / (options.interval * (pubg.bulletIndex - 1)) * d) - pubg.xCounter
+			local y = math.ceil((pubg.currentTime - pubg.startTime) / (options.interval * (pubg.bulletIndex - 1)) * options.ballistic[pubg.bulletIndex]) - pubg.counter
 			-- 4-fold pressure gun mode
 			-- y = y * (IsModifierPressed("lalt") and { 2.8 } or { 1 })[1]
 			local realY = pubg.getRealY(y)
-			-- OutputLogMessage(time .. "\n")
+			MoveMouseRelative(x, realY)
+			-- OutputLogMessage(pubg.bulletIndex .. "\n")
 			-- Whether to issue automatically or not
 			if userInfo.autoContinuousFiring == 1 then
-				-- PressAndReleaseMouseButton(1)
-				PressAndReleaseKey(userInfo.fireKeySetting)
+				PressAndReleaseMouseButton(1)
 			end
 
 			-- Real-time operation parameters
-			OutputLogMessage(table.concat({
-				"-------------------------------------------------------------------------------------------","\n",
-				"bullet count: ",time,"    target: ",options.ballistic[time],"    last counter: ",pubg.counter,"\n",
-				"D-value: ",options.ballistic[time]," - ",pubg.counter," = ",options.ballistic[time] - pubg.counter,"\n",
-				"move: math.ceil((",now," - ",pubg.startTime,") / (",options.interval," * (",time," - 1)) * ",options.ballistic[time],") - ",pubg.counter," = ",y,"\n",
-			}))
+			pubg.autoLog(options, y)
 
-			MoveMouseRelative(x, realY)
-			local random = 0
-			if IsKeyLockOn("scrolllock") then
-				-- When debugging mode is turned on, Turn off random delays in preventive testing
-				random = math.random(pubg.sleep, pubg.sleep)
-			else
-				random = math.random(pubg.sleepRandom[1], pubg.sleepRandom[2])
-			end
 			pubg.xCounter = pubg.xCounter + x
 			pubg.counter = pubg.counter + y
-			-- Sleep(10)
-			Sleep(random)
-		else
-			pubg.counter = 0 -- Initialization counter
-			pubg.xCounter = 0 -- Initialization xCounter
-			pubg.SetRandomseed() -- Reset random number seeds
-			break
-		end
-	end
 
+			pubg.autoSleep(IsKeyLockOn("scrolllock"))
+		-- else
+		-- 	pubg.counter = 0 -- Initialization counter
+		-- 	pubg.xCounter = 0 -- Initialization xCounter
+		-- 	pubg.SetRandomseed() -- Reset random number seeds
+		-- 	break
+		-- end
+	-- end
+
+end
+
+--[[ Sleep of pubg.auto ]]
+function pubg.autoSleep (isTest)
+	local random = 0
+	if isTest then
+		-- When debugging mode is turned on, Turn off random delays in preventive testing
+		random = math.random(pubg.sleep, pubg.sleep)
+	else
+		random = math.random(pubg.sleepRandom[1], pubg.sleepRandom[2])
+	end
+	-- Sleep(10)
+	Sleep(random)
+end
+
+--[[ log of pubg.auto ]]
+function pubg.autoLog (options, y)
+	OutputLogMessage(table.concat({
+		"-------------------------------------------------------------------------------------------","\n",
+		"bullet index: ",pubg.bulletIndex,"    target counter: ",options.ballistic[pubg.bulletIndex],"    current counter: ",pubg.counter,"\n",
+		"D-value: ",options.ballistic[pubg.bulletIndex]," - ",pubg.counter," = ",options.ballistic[pubg.bulletIndex] - pubg.counter,"\n",
+		"move: math.ceil((",pubg.currentTime," - ",pubg.startTime,") / (",options.interval," * (",pubg.bulletIndex," - 1)) * ",options.ballistic[pubg.bulletIndex],") - ",pubg.counter," = ",y,"\n",
+	}))
 end
 
 --[[ get real y position ]]
@@ -681,6 +742,7 @@ function pubg.runCmd (cmd)
 		["SCAR-L"] = pubg.setGun,
 		["QBZ"] = pubg.setGun,
 		["G36C"] = pubg.setGun,
+		["M16A4"] = pubg.setGun,
 		["AKM"] = pubg.setGun,
 		["Beryl M762"] = pubg.setGun,
 		["DP-28"] = pubg.setGun,
@@ -703,7 +765,7 @@ function pubg.runCmd (cmd)
 		end,
 	}
 
-	switch[cmd](cmd)
+	if pubg.ok then switch[cmd](cmd) end
 end
 
 --[[ Listener method ]]
@@ -715,25 +777,40 @@ function OnEvent (event, arg, family)
 		It takes 0-1ms from pressing the left key to starting the action of pressing the gun
 		and the probability is 0 Ms. The cycle is stable and does not exceed the threshold.
 	]]
-	pubg.startTime = GetRunningTime()
 
 	-- Whether to open the capitalization key or not
-	if not pubg.isEffective then return false end
+	if not pubg.ok then return false end
 
 	-- OutputLogMessage("event = %s, arg = %s, family = %s\n", event, arg, family)
 	-- OutputLogMessage("event = " .. event .. ", arg = " .. arg .. ", family = " .. family .. "\n")
 
 	-- Automatic press gun
-	if event == "MOUSE_BUTTON_PRESSED" and arg == 1 and family == "mouse" then
+	if event == "MOUSE_BUTTON_PRESSED" and arg == 1 and family == "mouse" and pubg.ok then
 		if not pubg.runStatus() then return false end
 		ClearLog()
 		if pubg.isAimingState("ADS") or pubg.isAimingState("Aim") then
-			pubg.auto(pubg.gunOptions[pubg.bulletType][pubg.gunIndex]) -- Injecting Firearms Data into Automatic Pressure Gun Function
+			-- pubg.auto(pubg.gunOptions[pubg.bulletType][pubg.gunIndex]) -- Injecting Firearms Data into Automatic Pressure Gun Function
+			pubg.startTime = GetRunningTime()
+			pubg.G1 = true
+			SetMKeyState(1)
 		end
 	end
 
+	if event == "MOUSE_BUTTON_RELEASED" and arg == 1 and family == "mouse" then
+		pubg.G1 = false
+		pubg.counter = 0 -- Initialization counter
+		pubg.xCounter = 0 -- Initialization xCounter
+		pubg.SetRandomseed() -- Reset random number seeds
+	end
+
+	if event == "M_PRESSED" and arg == 1 and pubg.G1 and pubg.ok then
+		-- PressAndReleaseMouseButton(1)
+		pubg.auto(pubg.gunOptions[pubg.bulletType][pubg.gunIndex])
+		SetMKeyState(1)
+	end
+
 	-- Switching arsenals according to different types of ammunition
-	if event == "MOUSE_BUTTON_PRESSED" and family == "mouse" then
+	if event == "MOUSE_BUTTON_PRESSED" and family == "mouse" and pubg.ok then
 		-- if not pubg.runStatus() and userInfo.startControl ~= "G_bind" then return false end
 		if arg >=3 and arg <= 11 then
 			local modifier = "G"
@@ -761,6 +838,7 @@ end
 --[[ Other ]]
 EnablePrimaryMouseButtonEvents(true) -- Enable left mouse button event reporting
 pubg.GD = GetDate -- Setting aliases
+pubg.ok = pubg.isEffective
 pubg.init() -- Script initialization
 
 --[[ Script End ]]
