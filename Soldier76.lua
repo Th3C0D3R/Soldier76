@@ -50,24 +50,24 @@ userInfo = {
 	-- 支持的枪械，排列顺序即是配置顺序，可以自行调整，不需要的枪械请设置为0，需要的设置为1。
 	canUse = {
 		[".45"] = {
-			{ "UMP45", 1 }, -- Reddot + Mag，Bizon (Reddot)，Vector (Komp + Reddot + Mag)
-			{ "Tommy Gun", 1 }, -- Mag
+			{ "UMP45", 1 }, -- 基础镜 + 扩容，Bizon (基础镜即可)，Vector (补偿 + 基础镜 + 扩容) | Reddot + Mag，Bizon (Reddot)，Vector (Komp + Reddot + Mag)
+			{ "Tommy Gun", 1 }, -- 扩容 | Mag
 		},
 		["9mm"] = {
-			{ "Vector", 1 }, -- Reddot + Mag
-			{ "Micro UZI", 1 }, -- Mag
+			{ "Vector", 1 }, -- 基础镜 + 扩容 | Reddot + Mag
+			{ "Micro UZI", 1 }, -- 扩容 | Mag
 		},
 		["5.56"] = {
-			{ "M416", 1 }, -- Komp + Reddot + 直角 + 枪托 + Mag
-			{ "SCAR-L", 1 }, -- Komp + Reddot + 直角 + Mag
-			{ "QBZ", 1 }, -- Komp + Reddot + 直角 + Mag
-			{ "G36C", 1 }, -- Komp + Reddot + 直角 + Mag
-			{ "M16A4", 1 }, -- Komp + Reddot + Mag
+			{ "M416", 1 }, -- 补偿 + 基础镜 + 直角 + 枪托 + 扩容 | Komp + Reddot + Triangular grip + Gunstock + Mag
+			{ "SCAR-L", 1 }, -- 补偿 + 基础镜 + 直角 + 扩容 | Komp + Reddot + Triangular grip + Mag
+			{ "QBZ", 1 }, -- 补偿 + 基础镜 + 直角 + 扩容 | Komp + Reddot + Triangular grip + Mag
+			{ "G36C", 1 }, -- 补偿 + 基础镜 + 直角 + 扩容 | Komp + Reddot + Triangular grip + Mag
+			{ "M16A4", 1 }, -- 补偿 + 基础镜 + 枪托 + 扩容 | Komp + Reddot + Gunstock + Mag
 		},
 		["7.62"] = {
-			{ "AKM", 1 }, -- Komp + Reddot + Mag
-			{ "Beryl M762", 1 }, -- Komp + Reddot + 直角 + Mag
-			{ "DP-28", 1 }, -- Reddot
+			{ "AKM", 1 }, -- 补偿 + 基础镜 + 扩容 | Komp + Reddot + Mag
+			{ "Beryl M762", 1 }, -- 补偿 + 基础镜 + 直角 + 扩容 | Komp + Reddot + Triangular grip + Mag
+			{ "DP-28", 1 }, -- 基础镜 | Reddot
 		},
 	},
 
